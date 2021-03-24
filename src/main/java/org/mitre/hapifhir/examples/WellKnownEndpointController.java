@@ -12,8 +12,8 @@ public class WellKnownEndpointController {
    * Get request to support well-known endpoints for authorization metadata. See
    * http://www.hl7.org/fhir/smart-app-launch/conformance/index.html#using-well-known
    *
+   * @param theRequest Incoming request, unused here
    * @return String representing json object of metadata returned at this url
-   * @throws IOException when the request fails
    */
   @GetMapping(path = "/smart-configuration", produces = { "application/json" })
   public String getWellKnownJson(HttpServletRequest theRequest) {

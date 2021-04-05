@@ -53,7 +53,8 @@ public class BackendAuthorizationInterceptor extends AuthorizationInterceptor {
       if (matcher.find() && matcher.groupCount() == 1) {
         token = matcher.group(1);
 
-        if (token.equals("admin")) {
+        String adminToken = System.getenv("ADMIN_TOKEN");
+        if (adminToken != null && token.equals(adminToken)) {
           return authorizedRule();
         } else {
           try {

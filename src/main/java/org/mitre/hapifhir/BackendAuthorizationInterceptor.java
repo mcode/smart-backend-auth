@@ -8,9 +8,12 @@ import ca.uhn.fhir.rest.server.interceptor.auth.RuleBuilder;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -59,7 +62,6 @@ public class BackendAuthorizationInterceptor extends AuthorizationInterceptor {
         } else {
           try {
             verify(token);
-            return authorizedRule();
           } catch (TokenExpiredException e) {
             e.printStackTrace();
             throw new AuthenticationException("Token is expired", e);
@@ -72,6 +74,18 @@ public class BackendAuthorizationInterceptor extends AuthorizationInterceptor {
           } catch (Exception e) {
             e.printStackTrace();
             throw new AuthenticationException("Unable to authorize token", e);
+          }
+
+          // Decode token and check scope
+          try {
+            checkScopes(token, theRequestDetails);
+            return authorizedRule();
+          } catch (JWTDecodeException e){
+            e.printStackTrace();
+            throw new AuthenticationException("Unable to decode token", e);
+          } catch (JWTVerificationException e) {
+            e.printStackTrace();
+            throw new AuthenticationException("Insufficient scope", e);
           }
         }
       } else {
@@ -116,15 +130,34 @@ public class BackendAuthorizationInterceptor extends AuthorizationInterceptor {
   /**
    * Verify the access token signature and expiration.
    * @param token - the access token
-   * @return true if signature is valid and token has not expired, otherwise throws an exception
+   * @return void if signature is valid and token has not expired, otherwise throws an exception
    */
-  private boolean verify(String token) throws IllegalArgumentException, NoSuchAlgorithmException,
+  private void verify(String token) throws IllegalArgumentException, NoSuchAlgorithmException,
       InvalidKeySpecException, TokenExpiredException, JWTVerificationException, IOException {
     Algorithm algorithm = getAlgorithm(token, getKey());
     JWTVerifier verifier = JWT.require(algorithm).build();
     verifier.verify(token);
+  }
 
-    return true;
+  /**
+   * Checks that access token has sufficient scope to make request
+   * @param token - the access token
+   * @param theRequestDetails - Request details
+   * @return void - throws JWTVerificationException if scope is insufficient
+   */
+  private void checkScopes(String token, RequestDetails theRequestDetails) throws JWTDecodeException, JWTVerificationException {
+    DecodedJWT jwt = JWT.decode(token);
+    Claim claim = jwt.getClaim("scope");
+    String scopes = claim.asString();
+
+    if (scopes == null) throw new JWTVerificationException("Insufficient scope");
+    if (scopes.contains("system/*.read")) return;
+
+    String resourceName = theRequestDetails.getResourceName();
+    String scope = String.format("system/%s.read", resourceName);
+
+    // Check for system/:resourceType.(read|*)
+    if (!(scopes.contains(scope) || scopes.contains(scope.replace("read", "*")))) throw new JWTVerificationException("Insufficient scope");
   }
 
   private Algorithm getAlgorithm(String token, Object publicKey) throws NoSuchAlgorithmException {

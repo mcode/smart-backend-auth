@@ -34,7 +34,7 @@ jobs:
         run: |
           mkdir -p ~/.gnupg/
           echo -n "$GPG_SIGNING_KEY" | base64 --decode > ~/.gnupg/private.key
-          gpg --quiet --batch --yes --import ~/.gnupg/private.key
+          gpg --quiet --batch --yes --passphrase $SIGNING_PASSWORD --import ~/.gnupg/private.key
 
           echo signing.keyId=$SIGNING_KEY_ID >> gradle.properties
           echo signing.password=$SIGNING_PASSWORD >> gradle.properties

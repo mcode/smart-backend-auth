@@ -29,23 +29,15 @@ jobs:
         run: ./gradlew assemble
         # just to ensure it compiles; if it doesn't then don't continue
 
-      - name: Configure GPG Key and Properties
-        # see https://stackoverflow.com/a/61748039 for how the key was exported
+      - name: Configure GPG Key Properties
         run: |
-          mkdir -p ~/.gnupg/
-          echo -n "$GPG_SIGNING_KEY" | base64 --decode > ~/.gnupg/private.key
-          gpg --quiet --batch --yes --passphrase $SIGNING_PASSWORD --import ~/.gnupg/private.key
-          gpg --keyring secring.gpg --export-secret-keys > ~/.gnupg/secring.gpg
-
-          echo signing.keyId=$SIGNING_KEY_ID >> gradle.properties
-          echo signing.password=$SIGNING_PASSWORD >> gradle.properties
-          echo signing.secretKeyRingFile=`ls ~/.gnupg/secring.gpg` >> gradle.properties
+          echo signingKey=$SIGNING_KEY >> gradle.properties
+          echo signingPassword=$SIGNING_PASSWORD >> gradle.properties
           echo ossrhUsername=$MAVEN_USERNAME >> gradle.properties
           echo ossrhPassword=$MAVEN_PASSWORD >> gradle.properties
 
         env:
-          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}

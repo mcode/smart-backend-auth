@@ -1,0 +1,54 @@
+# run deploy only when pushing new tags
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+
+      - name: Gradle cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-jdk8-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-jdk8
+            
+      - name: Create Artifacts
+        run: ./gradlew assemble
+        # just to ensure it compiles; if it doesn't then don't continue
+
+      - name: Configure GPG Key and Properties
+        # see https://stackoverflow.com/a/61748039 for how the key was exported
+        run: |
+          mkdir -p ~/.gnupg/
+          echo -n "$GPG_SIGNING_KEY" | base64 --decode > ~/.gnupg/private.key
+          gpg --import ~/.gnupg/private.key
+
+          echo signing.keyId=$SIGNING_KEY_ID >> gradle.properties
+          echo signing.password=$SIGNING_PASSWORD >> gradle.properties
+          echo signing.secretKeyRingFile=`ls ~/.gnupg/secring.gpg` >> gradle.properties
+          echo ossrhUsername=$MAVEN_USERNAME >> gradle.properties
+          echo ossrhPassword=$MAVEN_PASSWORD >> gradle.properties
+
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+
+
+      - name: Publish package
+        run: ./gradlew publish

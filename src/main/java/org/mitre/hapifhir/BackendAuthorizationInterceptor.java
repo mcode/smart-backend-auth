@@ -151,13 +151,19 @@ public class BackendAuthorizationInterceptor extends AuthorizationInterceptor {
     String scopes = claim.asString();
 
     if (scopes == null) throw new JWTVerificationException("Insufficient scope");
-    if (scopes.contains("system/*.read")) return;
 
-    String resourceName = theRequestDetails.getResourceName();
-    String scope = String.format("system/%s.read", resourceName);
+    /**
+     * Allow any request if scope includes "system/*.*"
+     * Allow GET request if scope includes "system/*.read"
+     * Allow POST, PUT, DELETE requests if scope includes "system/*.write"
+     */
+    String requestType = theRequestDetails.getRequestType().name();
+    if (scopes.contains("system/*.*") ||
+        (requestType == "GET" && scopes.contains("system/*.read")) ||
+        ((requestType == "POST" || requestType == "PUT" || requestType == "DELETE") &&
+        scopes.contains("system/*.write"))) return;
 
-    // Check for system/:resourceType.(read|*)
-    if (!(scopes.contains(scope) || scopes.contains(scope.replace("read", "*")))) throw new JWTVerificationException("Insufficient scope");
+    throw new JWTVerificationException("Insufficient scope");
   }
 
   private Algorithm getAlgorithm(String token, Object publicKey) throws NoSuchAlgorithmException {

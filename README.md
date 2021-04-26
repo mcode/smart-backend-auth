@@ -3,8 +3,7 @@
 This project is a library to assist with the SMART Backend Authorization protocol on HAPI-based FHIR servers.
 Due to the many different ways HAPI servers can be setup, there is some configuration required.
 
-
-# Installation
+## Installation
 
 This project can be added to an existing Maven-based project, add this dependency to `pom.xml`:
 
@@ -18,26 +17,26 @@ This project can be added to an existing Maven-based project, add this dependenc
 
 Or for a Gradle-based project, add this to `build.gradle`:
 
-```
+```gradle
 compile 'org.mitre.hapifhir:smart-backend-auth:0.0.2'
-
 ```
 
-# Usage
+## Usage
 
 There are two main components needed for a server to support the SMART Backend Authorization Protocol:
+
 1. The server must support token-based authentication, using an interceptor to validate incoming requests.
-  - This library provides a `BackendAuthorizationInterceptor`
+
+    - This library provides a `BackendAuthorizationInterceptor`
+    - The `BackendAuthorizationInterceptor` assumes the JWT(JSON Web Token) access token contains the `exp` and `scope` claims. The `exp` claim is used to determine if the token has expired and the `scope` claim is used to determine if the specific request is authorized.
 
 2. The server must expose the token URL via the server /metadata (CapabilityStatement) and the /.well-known/smart-configuration endpoints.
-  - This library provides a helper to override the server metadata, and another helper to construct the right format for .well-known/smart-configuration. Because there is no one common way to get properties across HAPI servers, is up to the user to expose an endpoint with this content. An example implementation using a RestController and web.xml is included below
 
+    - This library provides a helper to override the server metadata, and another helper to construct the right format for .well-known/smart-configuration. Because there is no one common way to get properties across HAPI servers, is up to the user to expose an endpoint with this content. An example implementation using a RestController and web.xml is included below
 
 For example, using a JPA Starter HAPI FHIR Server:
 
-
 ```java
-
 import org.mitre.hapifhir.BackendAuthorizationInterceptor;
 import org.mitre.hapifhir.SMARTServerCapabilityStatementProvider;
 
@@ -94,7 +93,6 @@ public class WellknownEndpointController {
 
 ```
 
-
 ```xml
 web.xml:
 
@@ -132,22 +130,24 @@ web.xml:
 
 ```
 
-
-
-# Development
+## Development
 
 To install the current working version to your local Maven repo, run
-```
+
+```sh
 ./gradlew publishToMavenLocal
 ```
 
 ### Publishing New Versions
 
 To publish new versions to Maven Central, first update the version in `build.gradle`:
-```
+
+```gradle
 def mavenVersion = '0.0.1'
 ```
+
 Then tag the version as appropriate in GitHub, for example:
+
 ```sh
 git tag v0.0.1
 git push origin v0.0.1
@@ -157,8 +157,8 @@ The CI process `deploy.yml` will run to publish the new version.
 
 Coordinate with [@dehall](https://github.com/dehall) (dehall@mitre.org) to ensure the published artifacts are released. 
 
+## License
 
-# License
 Copyright 2021 The MITRE Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");

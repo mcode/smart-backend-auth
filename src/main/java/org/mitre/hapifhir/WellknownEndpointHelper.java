@@ -12,7 +12,9 @@ public class WellknownEndpointHelper {
 
   public static String getWellKnownJson(String tokenEndpointUrl) {
     JSONArray scopesSupported = new JSONArray();
+    scopesSupported.put("system/*.*");
     scopesSupported.put("system/*.read");
+    scopesSupported.put("system/*.write");
     scopesSupported.put("offline_access");
 
     JSONArray responseTypesSupported = new JSONArray();

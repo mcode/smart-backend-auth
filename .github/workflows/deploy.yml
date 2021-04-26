@@ -29,7 +29,7 @@ jobs:
         run: ./gradlew assemble
         # just to ensure it compiles; if it doesn't then don't continue
 
-      - name: Configure GPG Key Properties
+      - name: Configure Signing Key
         run: |
           echo signingKey=$SIGNING_KEY >> gradle.properties
           echo signingPassword=$SIGNING_PASSWORD >> gradle.properties

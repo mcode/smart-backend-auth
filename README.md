@@ -141,6 +141,22 @@ To install the current working version to your local Maven repo, run
 ./gradlew publishToMavenLocal
 ```
 
+### Publishing New Versions
+
+To publish new versions to Maven Central, first update the version in `build.gradle`:
+```
+def mavenVersion = '0.0.1'
+```
+Then tag the version as appropriate in GitHub, for example:
+```sh
+git tag v0.0.1
+git push origin v0.0.1
+```
+
+The CI process `deploy.yml` will run to publish the new version.
+
+Coordinate with [@dehall](https://github.com/dehall) (dehall@mitre.org) to ensure the published artifacts are released. 
+
 
 # License
 Copyright 2021 The MITRE Corporation

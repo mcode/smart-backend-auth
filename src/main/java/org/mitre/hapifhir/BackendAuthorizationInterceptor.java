@@ -1,6 +1,7 @@
 package org.mitre.hapifhir;
 
 import ca.uhn.fhir.rest.api.server.RequestDetails;
+import ca.uhn.fhir.rest.api.RequestTypeEnum;
 import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 import ca.uhn.fhir.rest.server.interceptor.auth.AuthorizationInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.auth.IAuthRule;
@@ -157,10 +158,10 @@ public class BackendAuthorizationInterceptor extends AuthorizationInterceptor {
      * Allow GET request if scope includes "system/*.read"
      * Allow POST, PUT, DELETE requests if scope includes "system/*.write"
      */
-    String requestType = theRequestDetails.getRequestType().name();
+    RequestTypeEnum requestType = theRequestDetails.getRequestType();
     if (scopes.contains("system/*.*") ||
-        (requestType == "GET" && scopes.contains("system/*.read")) ||
-        ((requestType == "POST" || requestType == "PUT" || requestType == "DELETE") &&
+        (requestType.equals(RequestTypeEnum.GET) && scopes.contains("system/*.read")) ||
+        ((requestType.equals(RequestTypeEnum.POST) || requestType.equals(RequestTypeEnum.PUT) || requestType.equals(RequestTypeEnum.DELETE)) &&
         scopes.contains("system/*.write"))) return;
 
     throw new JWTVerificationException("Insufficient scope");

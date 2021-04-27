@@ -11,14 +11,14 @@ This project can be added to an existing Maven-based project, add this dependenc
 <dependency>
   <groupId>org.mitre.hapifhir</groupId>
   <artifactId>smart-backend-auth</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
 </dependency>
 ```
 
 Or for a Gradle-based project, add this to `build.gradle`:
 
 ```gradle
-compile 'org.mitre.hapifhir:smart-backend-auth:0.0.2'
+compile 'org.mitre.hapifhir:smart-backend-auth:0.0.3'
 ```
 
 ## Usage

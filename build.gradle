@@ -54,7 +54,7 @@ artifacts {
 }
 
 def mavenGroup = 'org.mitre.hapifhir'
-def mavenVersion = '0.0.2'
+def mavenVersion = '0.0.3'
 
 publishing {
     publications {

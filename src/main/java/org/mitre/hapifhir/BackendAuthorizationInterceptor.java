@@ -46,6 +46,9 @@ public class BackendAuthorizationInterceptor extends AuthorizationInterceptor {
   
   @Override
   public List<IAuthRule> buildRuleList(RequestDetails theRequestDetails) {
+    String requireAuth = System.getenv("REQUIRE_AUTH");
+    if (requireAuth == null || requireAuth.equals("false")) return authorizedRule();
+
     String authHeader = theRequestDetails.getHeader("Authorization");
 
     if (authHeader != null) {

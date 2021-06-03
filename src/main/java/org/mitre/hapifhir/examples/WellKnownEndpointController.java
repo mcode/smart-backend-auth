@@ -18,7 +18,8 @@ public class WellKnownEndpointController {
   @GetMapping(path = "/smart-configuration", produces = { "application/json" })
   public String getWellKnownJson(HttpServletRequest theRequest) {
     String yourTokenUrl = ""; // get by configuration here
+    String yourRegistrationUrl = ""; // get by configuration here
 
-    return WellknownEndpointHelper.getWellKnownJson(yourTokenUrl);
+    return WellknownEndpointHelper.getWellKnownJson(yourTokenUrl, yourRegistrationUrl);
   }
 }

@@ -2,6 +2,7 @@ package org.mitre.hapifhir;
 
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,15 +21,17 @@ import org.hl7.fhir.r4.model.UriType;
 public class SMARTServerCapabilityStatementProvider extends ServerCapabilityStatementProvider {
 
   private String tokenAddress;
+  private String registerAddress;
   
   // post processing steps are things on the CapabilityStatement like "setTitle" or "setPublisher"
   // ie, things users may want to set, but I don't want to define setters for every possible thing
   private List<Consumer<CapabilityStatement>> postProcessSteps;
   
-  public SMARTServerCapabilityStatementProvider(String tokenAddress) {
+  public SMARTServerCapabilityStatementProvider(String tokenAddress, String registerAddress) {
     super();
     
     this.tokenAddress = tokenAddress;
+    this.registerAddress = registerAddress;
     this.postProcessSteps = new LinkedList<>();
   }
   
@@ -43,7 +46,7 @@ public class SMARTServerCapabilityStatementProvider extends ServerCapabilityStat
     CapabilityStatement c = super.getServerConformance(request, requestDetails);
 
     CapabilityStatementRestSecurityComponent securityComponent =
-        buildSecurityComponent(tokenAddress);
+        buildSecurityComponent(tokenAddress, registerAddress);
 
     // Get the CapabilityStatementRestComponent for the server if one exists
     List<CapabilityStatementRestComponent> restComponents = c.getRest();
@@ -71,15 +74,20 @@ public class SMARTServerCapabilityStatementProvider extends ServerCapabilityStat
     return c;
   }
     
-  private static CapabilityStatementRestSecurityComponent buildSecurityComponent(String tokenAddr) {
+  private static CapabilityStatementRestSecurityComponent buildSecurityComponent(String tokenAddr, String registrationAddr) {
     CapabilityStatementRestSecurityComponent securityComponent =
         new CapabilityStatementRestSecurityComponent();
     Extension oauthExtension = new Extension();
 
-    Extension tokenEndpointUri = new Extension("token", new UriType(tokenAddr));
     oauthExtension.setUrl("http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris");
-    oauthExtension.setExtension(Collections.singletonList(tokenEndpointUri));
+    List<Extension> extensions = new ArrayList<>();
+    if (registrationAddr != null) {
+      extensions.add(new Extension("register", new UriType(registrationAddr)));
+    }
+    extensions.add(new Extension("token", new UriType(tokenAddr)));
+    oauthExtension.setExtension(extensions);
     securityComponent.addExtension(oauthExtension);
+
 
     return securityComponent;
   }

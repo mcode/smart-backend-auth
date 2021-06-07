@@ -27,12 +27,12 @@ There are two main components needed for a server to support the SMART Backend A
 
 1. The server must support token-based authentication, using an interceptor to validate incoming requests.
 
-    - This library provides a `BackendAuthorizationInterceptor`
-    - The `BackendAuthorizationInterceptor` assumes the JWT(JSON Web Token) access token contains the `exp` and `scope` claims. The `exp` claim is used to determine if the token has expired and the `scope` claim is used to determine if the specific request is authorized.
+   - This library provides a `BackendAuthorizationInterceptor`
+   - The `BackendAuthorizationInterceptor` assumes the JWT(JSON Web Token) access token contains the `exp` and `scope` claims. The `exp` claim is used to determine if the token has expired and the `scope` claim is used to determine if the specific request is authorized.
 
 2. The server must expose the token URL via the server /metadata (CapabilityStatement) and the /.well-known/smart-configuration endpoints.
 
-    - This library provides a helper to override the server metadata, and another helper to construct the right format for .well-known/smart-configuration. Because there is no one common way to get properties across HAPI servers, is up to the user to expose an endpoint with this content. An example implementation using a RestController and web.xml is included below
+   - This library provides a helper to override the server metadata, and another helper to construct the right format for .well-known/smart-configuration. Because there is no one common way to get properties across HAPI servers, is up to the user to expose an endpoint with this content. An example implementation using a RestController and web.xml is included below
 
 For example, using a JPA Starter HAPI FHIR Server:
 
@@ -53,7 +53,7 @@ public class JpaRestfulServer extends RestfulServer {
     ...
 
     SMARTServerCapabilityStatementProvider smartCSProvider =
-        new SMARTServerCapabilityStatementProvider(HapiProperties.getAuthServerTokenAddress());
+        new SMARTServerCapabilityStatementProvider(HapiProperties.getAuthServerTokenAddress(), HapiProperties.getAuthServerRegisterAddress());
 
     setServerConformanceProvider(smartCSProvider);
   }
@@ -86,7 +86,7 @@ public class WellknownEndpointController {
     @GetMapping(path = "/smart-configuration", produces = {"application/json"})
     public String getWellKnownJson(HttpServletRequest theRequest) {
       String yourTokenUrl = HapiProperties.getAuthServerTokenAddress();
-      
+
       return WellknownEndpointHelper.getWellKnownJson(yourTokenUrl);
     }
 }
@@ -155,7 +155,7 @@ git push origin v0.0.1
 
 The CI process `deploy.yml` will run to publish the new version.
 
-Coordinate with [@dehall](https://github.com/dehall) (dehall@mitre.org) to ensure the published artifacts are released. 
+Coordinate with [@dehall](https://github.com/dehall) (dehall@mitre.org) to ensure the published artifacts are released.
 
 ## License
 

@@ -2,7 +2,7 @@ package org.mitre.hapifhir;
 
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -20,15 +20,24 @@ import org.hl7.fhir.r4.model.UriType;
 public class SMARTServerCapabilityStatementProvider extends ServerCapabilityStatementProvider {
 
   private String tokenAddress;
+  private String registerAddress;
   
   // post processing steps are things on the CapabilityStatement like "setTitle" or "setPublisher"
   // ie, things users may want to set, but I don't want to define setters for every possible thing
   private List<Consumer<CapabilityStatement>> postProcessSteps;
   
-  public SMARTServerCapabilityStatementProvider(String tokenAddress) {
+  /**
+   * Class to build a CapabilityStatement which includes the SMART URL rest extension.
+   * See: http://www.hl7.org/fhir/smart-app-launch/conformance/index.html#using-cs
+   * 
+   * @param tokenAddress - the OAuth token endpoint 
+   * @param registerAddress - (optional) the OAuth client registration endpoint
+   */
+  public SMARTServerCapabilityStatementProvider(String tokenAddress, String registerAddress) {
     super();
     
     this.tokenAddress = tokenAddress;
+    this.registerAddress = registerAddress;
     this.postProcessSteps = new LinkedList<>();
   }
   
@@ -42,8 +51,7 @@ public class SMARTServerCapabilityStatementProvider extends ServerCapabilityStat
       HttpServletRequest request, RequestDetails requestDetails) {
     CapabilityStatement c = super.getServerConformance(request, requestDetails);
 
-    CapabilityStatementRestSecurityComponent securityComponent =
-        buildSecurityComponent(tokenAddress);
+    CapabilityStatementRestSecurityComponent securityComponent = this.buildSecurityComponent();
 
     // Get the CapabilityStatementRestComponent for the server if one exists
     List<CapabilityStatementRestComponent> restComponents = c.getRest();
@@ -71,15 +79,20 @@ public class SMARTServerCapabilityStatementProvider extends ServerCapabilityStat
     return c;
   }
     
-  private static CapabilityStatementRestSecurityComponent buildSecurityComponent(String tokenAddr) {
+  private CapabilityStatementRestSecurityComponent buildSecurityComponent() {
     CapabilityStatementRestSecurityComponent securityComponent =
         new CapabilityStatementRestSecurityComponent();
     Extension oauthExtension = new Extension();
 
-    Extension tokenEndpointUri = new Extension("token", new UriType(tokenAddr));
     oauthExtension.setUrl("http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris");
-    oauthExtension.setExtension(Collections.singletonList(tokenEndpointUri));
+    List<Extension> extensions = new ArrayList<>();
+    if (this.registerAddress != null) {
+      extensions.add(new Extension("register", new UriType(this.registerAddress)));
+    }
+    extensions.add(new Extension("token", new UriType(this.tokenAddress)));
+    oauthExtension.setExtension(extensions);
     securityComponent.addExtension(oauthExtension);
+
 
     return securityComponent;
   }
